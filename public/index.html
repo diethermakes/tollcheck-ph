@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Toll Check PH: route and toll fees for Philippine expressways</title>
+<meta name="description" content="Plan a drive in Luzon and see the exact toll you'll pay on NLEX, SCTEX, TPLEX, SLEX, Skyway, STAR, CALAX, CAVITEX and more.">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800&family=Overpass+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--sign:#0a5c3e;--sign-ink:#fff;--bg:#eef1ee;--surface:#fff;--ink:#15211b;--muted:#5b6b62;--line:#cfd8d2;--amber:#f2b705;--amber-ink:#2a2100;--warn:#9a3b12;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--sign:#0e6b49;--sign-ink:#f2fff8;--bg:#0f1512;--surface:#18211c;--ink:#e6eee9;--muted:#9db0a5;--line:#2c3a32;--warn:#ff9a6b;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Overpass",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.45}
+.app{display:grid;grid-template-columns:400px 1fr;height:100%}
+.side{overflow-y:auto;padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#map{height:100%;min-height:320px;background:var(--line)}
+@media (max-width:820px){.app{grid-template-columns:1fr;grid-template-rows:42vh auto;height:auto}.side{order:2;overflow:visible}#map{order:1;height:42vh}}
+.sign{background:var(--sign);color:var(--sign-ink);border-radius:12px;padding:14px 16px;border:3px solid var(--sign-ink);outline:3px solid var(--sign);margin:3px}
+.sign h1{margin:0;font-size:1.7rem;font-weight:800;line-height:1.05}
+.sign p{margin:4px 0 0;font-size:.92rem;opacity:.92}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px}
+label{font-weight:600;display:block;margin:10px 0 4px;font-size:.92rem}
+label:first-child{margin-top:0}
+input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+input:focus,select:focus,button:focus-visible{outline:3px solid var(--amber);outline-offset:1px}
+.field{position:relative}
+.sugg{position:absolute;z-index:1200;left:0;right:0;top:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-top:2px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.sugg button{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:9px 12px;color:var(--ink);font:inherit;font-weight:400;border-radius:0}
+.sugg button:first-child{border-top:0}
+.sugg button:hover{background:var(--bg)}
+.sugg small{color:var(--muted);display:block}
+button{font:inherit;font-weight:700;border:0;border-radius:8px;padding:10px 14px;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.primary{background:var(--sign);color:var(--sign-ink)}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.hint{color:var(--muted);font-size:.85rem;margin:6px 0 0}
+.notice{margin-top:10px;padding:9px 11px;border-left:4px solid var(--amber);background:var(--bg);border-radius:6px;font-size:.92rem}
+.notice.err{border-left-color:var(--warn)}
+.ticket{margin-top:12px;background:var(--amber);color:var(--amber-ink);border-radius:12px;padding:16px;position:relative}
+.ticket::before,.ticket::after{content:"";position:absolute;top:50%;width:20px;height:20px;border-radius:50%;background:var(--bg);transform:translateY(-50%)}
+.ticket::before{left:-10px}.ticket::after{right:-10px}
+.ticket h2{margin:0;font-size:.95rem;font-weight:600}
+.total{font-family:"Overpass Mono",ui-monospace,monospace;font-size:3rem;line-height:1;margin:4px 0}
+.lines{border-top:2px dashed rgba(42,33,0,.45);margin-top:10px;padding-top:6px}
+.line{display:flex;justify-content:space-between;gap:10px;padding:6px 0}
+.line .what{font-weight:600}.line .meta{font-size:.82rem;opacity:.8}
+.line .amt{font-family:"Overpass Mono",ui-monospace,monospace;white-space:nowrap}
+.ticket a{display:inline-block;margin:10px 8px 0 0;background:var(--amber-ink);color:var(--amber);text-decoration:none;font-weight:700;border-radius:8px;padding:8px 12px;font-size:.9rem}
+.leg{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 0;border-top:1px dashed var(--line)}
+.leg:first-child{border-top:0}
+.leg .exp{grid-column:1/-1}
+.leg small{display:block;color:var(--muted);font-size:.78rem;margin-bottom:2px}
+.leg .x{grid-column:1/-1;background:none;border:1px solid var(--line);color:var(--muted);padding:6px;font-weight:400;font-size:.85rem}
+details summary{cursor:pointer;font-weight:600}
+.foot{color:var(--muted);font-size:.8rem;margin:14px 2px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="side">
+    <header class="sign">
+      <h1>Toll Check PH</h1>
+      <p>Know your toll before you drive. Updated TRB rates for Luzon expressways.</p>
+    </header>
+
+    <section class="panel">
+      <label for="from">From</label>
+      <div class="field"><input type="text" id="from" placeholder="Starting point" autocomplete="off"><div class="sugg" id="fromS" hidden></div></div>
+      <label for="to">To</label>
+      <div class="field"><input type="text" id="to" placeholder="Destination" autocomplete="off"><div class="sugg" id="toS" hidden></div></div>
+      <div class="row">
+        <button class="primary" id="go">Get route and toll</button>
+        <button class="ghost" id="me">Use my location</button>
+      </div>
+      <details style="margin-top:12px">
+        <summary>Have a Google Maps link?</summary>
+        <label for="link">Paste the shared link</label>
+        <input type="text" id="link" placeholder="https://maps.app.goo.gl/…">
+        <div class="row"><button class="ghost" id="useLink">Use this link</button></div>
+      </details>
+      <div id="msg"></div>
+    </section>
+
+    <section class="ticket" aria-live="polite">
+      <h2 id="tlabel">Total toll, Class 1</h2>
+      <div class="total" id="total">₱0</div>
+      <div id="tsub" style="font-size:.88rem">Enter a trip to see the toll.</div>
+      <div class="lines" id="lines"></div>
+      <div id="handoff"></div>
+    </section>
+
+    <section class="panel">
+      <label for="cls">Vehicle class</label>
+      <select id="cls">
+        <option value="1">Class 1: cars, SUVs, vans</option>
+        <option value="2">Class 2: buses, light trucks (estimate)</option>
+        <option value="3">Class 3: large trucks (estimate)</option>
+      </select>
+      <details style="margin-top:12px">
+        <summary>Adjust toll entrances and exits</summary>
+        <p class="hint">Detected from your route. Change a plaza if you plan to enter or exit somewhere else.</p>
+        <div id="legs"></div>
+        <div class="row"><button class="ghost" id="add">Add expressway leg</button></div>
+      </details>
+    </section>
+
+    <p class="foot">Rates: Toll Regulatory Board matrices effective 1 February 2026, VAT included. Always check the posted rate at the plaza. Map data © OpenStreetMap contributors. Routing by OSRM. Search by Photon.</p>
+  </div>
+  <div id="map"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="tolls.js"></script>
+<script src="plazas.js"></script>
+<script src="detect.js"></script>
+<script>
+// ---- settings you can change ----
+const ROUTERS=[ // OSRM-compatible routing servers, tried in order
+  "https://router.project-osrm.org/route/v1/driving/",
+  "https://routing.openstreetmap.de/routed-car/route/v1/driving/"
+];
+const GEOCODER="https://photon.komoot.io/api/";
+const PH_BBOX="116.9,4.5,126.7,21.3";
+
+const $=id=>document.getElementById(id);
+const map=L.map("map").setView([14.9,120.9],8);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
+const layer=L.layerGroup().addTo(map);
+const PT={from:null,to:null}; // {lat,lng,label}
+let LEGS=[];
+
+// ---- place search ----
+async function geocode(q,limit=5){
+  const r=await fetch(`${GEOCODER}?q=${encodeURIComponent(q)}&limit=${limit}&bbox=${PH_BBOX}&lang=en`);
+  const j=await r.json();
+  return (j.features||[]).map(f=>{
+    const p=f.properties, sub=[p.street,p.district,p.city,p.county,p.state].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(", ");
+    return {lat:f.geometry.coordinates[1],lng:f.geometry.coordinates[0],label:p.name||sub,sub};
+  });
+}
+function wireSearch(which){
+  const inp=$(which), box=$(which+"S"); let t;
+  inp.addEventListener("input",()=>{
+    PT[which]=null; clearTimeout(t);
+    const q=inp.value.trim(); if(q.length<3){box.hidden=true;return;}
+    t=setTimeout(async()=>{
+      try{
+        const res=await geocode(q);
+        box.innerHTML=""; 
+        res.forEach(p=>{
+          const b=document.createElement("button"); b.type="button";
+          b.textContent=p.label; const s=document.createElement("small"); s.textContent=p.sub; b.appendChild(s);
+          b.onclick=()=>{PT[which]=p;inp.value=p.label;box.hidden=true;};
+          box.appendChild(b);
+        });
+        box.hidden=!res.length;
+      }catch(e){box.hidden=true;}
+    },350);
+  });
+  inp.addEventListener("blur",()=>setTimeout(()=>box.hidden=true,200));
+}
+wireSearch("from"); wireSearch("to");
+
+$("me").onclick=()=>{
+  if(!navigator.geolocation) return note("Your browser doesn't share location. Type your starting point instead.",true);
+  navigator.geolocation.getCurrentPosition(p=>{
+    PT.from={lat:p.coords.latitude,lng:p.coords.longitude,label:"My location"}; $("from").value="My location";
+  },()=>note("Location permission was not given. Type your starting point instead.",true));
+};
+function note(t,err){ const d=document.createElement("div"); d.className="notice"+(err?" err":""); d.textContent=t; $("msg").replaceChildren(d); }
+
+// ---- routing ----
+async function resolvePoint(which){
+  if(PT[which]) return PT[which];
+  const q=$(which).value.trim(); if(!q) throw new Error(which==="from"?"Add a starting point.":"Add a destination.");
+  const m=q.match(/^(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)$/);
+  if(m) return PT[which]={lat:+m[1],lng:+m[2],label:q};
+  const res=await geocode(q,1); if(!res.length) throw new Error(`Couldn't find "${q}". Try a nearby city or landmark.`);
+  return PT[which]=res[0];
+}
+async function getRoute(a,b){
+  const path=`${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson&steps=true`;
+  for(const base of ROUTERS){
+    try{ const r=await fetch(base+path); if(!r.ok) continue; const j=await r.json(); if(j.routes&&j.routes[0]) return j.routes[0]; }catch(e){}
+  }
+  throw new Error("The routing service is busy right now. Please try again in a moment.");
+}
+$("go").onclick=run;
+async function run(){
+  const btn=$("go"); btn.disabled=true; note("Finding your route…");
+  try{
+    const a=await resolvePoint("from"), b=await resolvePoint("to");
+    const route=await getRoute(a,b);
+    layer.clearLayers();
+    const line=L.geoJSON(route.geometry,{style:{color:"#0a5c3e",weight:5,opacity:.85}}).addTo(layer);
+    L.marker([a.lat,a.lng]).addTo(layer).bindPopup("Start: "+a.label);
+    L.marker([b.lat,b.lng]).addTo(layer).bindPopup("Destination: "+b.label);
+    map.fitBounds(line.getBounds(),{padding:[30,30]});
+    LEGS=detectLegs(route);
+    LEGS.forEach(([k,p1,p2])=>[[p1,"Enter"],[p2,"Exit"]].forEach(([p,w])=>{
+      L.circleMarker(PLAZAS[k][p],{radius:8,color:"#2a2100",fillColor:"#f2b705",fillOpacity:1,weight:2}).addTo(layer).bindPopup(`${w}: ${p} (${EXP[k].name})`);
+    }));
+    const kmTot=Math.round(route.distance/1000), mins=Math.round(route.duration/60);
+    note(`${kmTot} km, about ${Math.floor(mins/60)?Math.floor(mins/60)+" hr ":""}${mins%60} min without traffic. ${LEGS.length?"Toll plazas are marked in yellow on the map.":"This route doesn't use any tolled expressway."}`);
+    $("handoff").innerHTML=`<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&origin=${a.lat},${a.lng}&destination=${b.lat},${b.lng}&travelmode=driving">Open in Google Maps</a><a target="_blank" rel="noopener" href="https://waze.com/ul?ll=${b.lat},${b.lng}&navigate=yes">Open in Waze</a>`;
+    renderLegs();
+  }catch(e){ note(e.message,true); }
+  btn.disabled=false;
+}
+
+// ---- Google Maps link ----
+$("useLink").onclick=async()=>{
+  let t=($("link").value.match(/https?:\/\/\S+/)||[])[0];
+  if(!t) return note("Paste a Google Maps link first.",true);
+  note("Opening your Google Maps link…");
+  try{
+    if(/goo\.gl/i.test(t)){
+      const r=await fetch("/api/resolve?url="+encodeURIComponent(t)); const j=await r.json();
+      if(!r.ok||!j.url) throw new Error(j.error||"Couldn't open that link.");
+      t=j.url;
+    }
+    const u=new URL(t), sp=u.searchParams; let o="",d="";
+    const m=u.pathname.match(/\/maps\/dir\/(.+)/);
+    if(m){ const parts=m[1].split("/").filter(x=>x&&!x.startsWith("@")&&!x.startsWith("data=")).map(x=>decodeURIComponent(x.replace(/\+/g," "))); o=parts[0]||""; d=parts.length>1?parts[parts.length-1]:""; }
+    else { o=sp.get("origin")||sp.get("saddr")||""; d=sp.get("destination")||sp.get("daddr")||sp.get("q")||""; 
+      const pm=u.pathname.match(/\/maps\/place\/([^/]+)/); if(!d&&pm) d=decodeURIComponent(pm[1].replace(/\+/g," ")); }
+    if(!d) throw new Error("That link has no destination in it. Type the destination instead.");
+    PT.to=null; $("to").value=d;
+    if(o){ PT.from=null; $("from").value=o; }
+    if(!$("from").value.trim()) return note("Destination added. Now add your starting point or tap Use my location.");
+    run();
+  }catch(e){ note(e.message+" You can type the trip in the From and To boxes instead.",true); }
+};
+
+// ---- toll ticket ----
+const peso=n=>"₱"+Math.round(n).toLocaleString("en-PH");
+function calc(){
+  const c=+$("cls").value, mult=CLS[c]; let sum=0,bad=0;
+  $("lines").innerHTML=LEGS.map(([k,a,b])=>{
+    const f=fare(k,a,b);
+    if(f===null){bad++;return `<div class="line"><div><div class="what">${a} to ${b}</div><div class="meta">${EXP[k].name}. No rate listed for this pair. Adjust the plazas below.</div></div><div class="amt">n/a</div></div>`;}
+    sum+=f*mult;
+    return `<div class="line"><div><div class="what">${a} to ${b}</div><div class="meta">${EXP[k].name}, pay with ${EXP[k].rfid}</div></div><div class="amt">${f===0?"Free":peso(f*mult)}</div></div>`;
+  }).join("");
+  $("total").textContent=peso(sum);
+  $("tlabel").textContent=c===1?"Total toll, Class 1":`Estimated total toll, Class ${c}`;
+  const rf=[...new Set(LEGS.map(l=>EXP[l[0]].rfid))];
+  $("tsub").textContent=LEGS.length?`${LEGS.length} expressway ${LEGS.length>1?"legs":"leg"}. RFID needed: ${rf.join(" and ")}.${bad?" Some legs could not be priced.":""}`:"No toll on this trip yet.";
+}
+function renderLegs(){
+  $("legs").innerHTML=LEGS.length?LEGS.map((l,i)=>{
+    const e=EXP[l[0]], opt=(v,s)=>`<option${v===s?" selected":""}>${v}</option>`;
+    return `<div class="leg" data-i="${i}">
+      <div class="exp"><small>Expressway</small><select data-f="0">${Object.keys(EXP).map(k=>`<option value="${k}"${k===l[0]?" selected":""}>${EXP[k].name}</option>`).join("")}</select></div>
+      <div><small>Entrance</small><select data-f="1">${e.plazas.map(p=>opt(p,l[1])).join("")}</select></div>
+      <div><small>Exit</small><select data-f="2">${e.plazas.map(p=>opt(p,l[2])).join("")}</select></div>
+      <button class="x" data-del="${i}">Remove this leg</button></div>`;
+  }).join(""):'<p class="hint">No toll legs yet.</p>';
+  calc();
+}
+$("legs").addEventListener("change",ev=>{
+  const s=ev.target; if(!s.dataset.f) return;
+  const i=+s.closest(".leg").dataset.i, f=+s.dataset.f; LEGS[i][f]=s.value;
+  if(f===0){const p=EXP[s.value].plazas;LEGS[i][1]=p[0];LEGS[i][2]=p[p.length-1];}
+  renderLegs();
+});
+$("legs").addEventListener("click",ev=>{const d=ev.target.dataset.del; if(d!==undefined){LEGS.splice(+d,1);renderLegs();}});
+$("add").onclick=()=>{LEGS.push(["NLEX","Balintawak","Dau"]);renderLegs();};
+$("cls").onchange=calc;
+renderLegs();
+</script>
+</body>
+</html>
