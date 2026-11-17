@@ -29,7 +29,7 @@ function fit(bounds){
 
 // ---- state ----
 const PT={from:null,to:null};      // chosen places: {lat,lng,label,sub}
-let ROUTES=[], ENDS=null, LEGS=[], SEL=0, VCLASS=1;
+let ROUTES=[], ENDS=null, LEGS=[], SEL=0, VCLASS=1, SEARCHING=false, TRIP=0;
 
 // ---- theme ----
 $("themeBtn").onclick=()=>{
@@ -147,16 +147,18 @@ async function run(){
   try{
     const a=await resolvePoint("from"), b=await resolvePoint("to");
     const routes=await getRoutes(a,b);
+    TRIP++; SEARCHING=false;
     ROUTES=routes.map(r=>({r,legs:detectLegs(r)}));
     ENDS={a,b}; saveRecent(a,b);
     $("result").hidden=false; note("");
     showRoute(0);
     if(isPhone()) $("panel").classList.remove("peek");
+    addExpresswayOptions(a,b);
   }catch(e){ note(e.message,"err"); }
   btn.disabled=false; btn.textContent="Check toll";
 }
 function pin(cls,letter){ return L.divIcon({className:"",html:`<div class="pin ${cls}"><span>${letter}</span></div>`,iconSize:[28,28],iconAnchor:[14,28],popupAnchor:[0,-26]}); }
-function showRoute(i){
+function showRoute(i,keepView){
   SEL=i; const {r:route,legs}=ROUTES[i], {a,b}=ENDS;
   const css=getComputedStyle(document.documentElement);
   layer.clearLayers();
@@ -169,13 +171,14 @@ function showRoute(i){
   LEGS.forEach(([k,p1,p2])=>[[p1,"Enter"],[p2,"Exit"]].forEach(([p,w])=>{
     L.marker(PLAZAS[k][p],{icon:L.divIcon({className:"",html:'<div class="plaza"></div>',iconSize:[18,18],iconAnchor:[9,9]})}).addTo(layer).bindPopup(esc(`${w}: ${p} (${EXP[k].name})`));
   }));
-  fit(line.getBounds());
+  if(!keepView) fit(line.getBounds());
   // route options
-  const wrap=$("routesWrap"), box=$("routes"); wrap.hidden=ROUTES.length<2; box.replaceChildren();
+  const wrap=$("routesWrap"), box=$("routes"); wrap.hidden=ROUTES.length<2&&!SEARCHING; box.replaceChildren();
+  $("optNote").hidden=!SEARCHING;
   ROUTES.forEach((x,j)=>{
     const bt=el("button","opt"+(j===i?" on":"")); bt.type="button";
     const left=el("span"); left.appendChild(el("b",null,`${dur(x.r.duration)}, ${Math.round(x.r.distance/1000)} km`));
-    left.appendChild(el("small",null,[...new Set(x.legs.map(l=>EXP[l[0]].name))].join(", ")||"No toll roads"));
+    left.appendChild(el("small",null,x.legs.length?"Via "+[...new Set(x.legs.map(l=>EXP[l[0]].name))].join(", "):"No expressway, no toll"));
     bt.appendChild(left); bt.appendChild(el("span","amt",x.legs.length?peso(tollOf(x.legs)):"Free"));
     bt.onclick=()=>showRoute(j); box.appendChild(bt);
   });
@@ -186,6 +189,78 @@ function showRoute(i){
     const x=el("a",null,t); x.href=u; x.target="_blank"; x.rel="noopener noreferrer"; h.appendChild(x);
   });
   renderLegs();
+}
+
+// ---- expressway options ----
+// The free router has no traffic data, so it often skips expressways that are quicker in real life.
+// This looks for expressways that run between the start and the destination and offers them as extra options.
+const RUNS=new Map();
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function osrm(coords,extra=""){
+  const path=coords.map(c=>`${c[1]},${c[0]}`).join(";")+`?overview=full&geometries=geojson&steps=true${extra}`;
+  for(const base of ROUTERS){
+    try{ const r=await fetch(base+path); if(!r.ok) continue; const j=await r.json(); if(j.routes&&j.routes[0]) return j.routes[0]; }catch(e){}
+  }
+  return null;
+}
+function candidates(a,b,baseLegs){
+  const A=[a.lat,a.lng], B=[b.lat,b.lng], direct=km(A,B), out=[];
+  if(direct<4) return out;
+  for(const k of Object.keys(PLAZAS)){
+    const have=baseLegs.filter(l=>l[0]===k);          // already on a suggested route: only offer a different entry or exit
+    const names=Object.keys(PLAZAS[k]); let best=null;
+    for(const e of names){
+      const de=km(A,PLAZAS[k][e]); if(de>direct*0.6+3) continue;
+      for(const x of names){
+        if(e===x||fare(k,e,x)===null||have.some(l=>l[1]===e&&l[2]===x)) continue;
+        const dx=km(PLAZAS[k][x],B); if(dx>direct*0.6+3) continue;
+        const len=km(PLAZAS[k][e],PLAZAS[k][x]); if(len<2.5) continue;
+        const est=de+len*0.55+dx;
+        if(est<=direct*1.45+3 && (!best||est<best.est)) best={k,e,x,est};
+      }
+    }
+    if(best) out.push(best);
+  }
+  return out.sort((p,q)=>p.est-q.est).slice(0,3);
+}
+// exact points on the expressway between two plazas, taken from a real route so they sit on the right carriageway
+async function runPoints(k,e,x){
+  const id=k+"|"+e+"|"+x; if(RUNS.has(id)) return RUNS.get(id);
+  const r=await osrm([PLAZAS[k][e],PLAZAS[k][x]]); let pts=null;
+  if(r){
+    const on=r.legs.flatMap(l=>l.steps).filter(s=>{const c=s.geometry.coordinates; return c.length&&(classifyRoad(s.name,(c[0][1]+c[c.length-1][1])/2)===k);});
+    if(on.length){
+      const f=on[0].geometry.coordinates, l=on[on.length-1].geometry.coordinates;
+      const first=f[Math.min(2,f.length-1)], last=l[Math.max(0,l.length-3)];
+      pts=[[first[1],first[0]],[last[1],last[0]]];
+    }
+  }
+  RUNS.set(id,pts); return pts;
+}
+async function addExpresswayOptions(a,b){
+  const trip=TRIP, cands=candidates(a,b,ROUTES.flatMap(x=>x.legs)); if(!cands.length) return;
+  SEARCHING=true; showRoute(SEL,true);
+  const quick=ROUTES.reduce((p,q)=>q.r.duration<p.r.duration?q:p), fastest=quick.r.duration;
+  // if the quickest route is already tolled, only add options that take about as long. Otherwise allow a longer drive.
+  const limit=quick.legs.length ? fastest*1.25+300 : fastest*2+600;
+  const kind=legs=>[...new Set(legs.map(l=>l[0]))].sort().join("+")+"|"+legs.reduce((s,l)=>s+(fare(...l)||0),0);
+  for(const c of cands){
+    try{
+      const pts=await runPoints(c.k,c.e,c.x); await wait(350);
+      if(trip!==TRIP) return;
+      if(!pts) continue;
+      const r=await osrm([[a.lat,a.lng],pts[0],pts[1],[b.lat,b.lng]],"&continue_straight=true"); await wait(350);
+      if(trip!==TRIP) return;
+      if(!r) continue;
+      const legs=detectLegs(r);
+      if(!legs.some(l=>l[0]===c.k)) continue;                       // didn't actually use the expressway
+      if(r.duration>limit) continue;                                 // too far out of the way to be useful
+      if(ROUTES.some(x=>kind(x.legs)===kind(legs))) continue;        // same expressways and same toll as one already shown
+      ROUTES.push({r,legs,viaExp:true});
+      showRoute(SEL,true);
+    }catch(e){}
+  }
+  if(trip===TRIP){ SEARCHING=false; showRoute(SEL,true); }
 }
 
 // ---- toll breakdown ----
@@ -247,19 +322,27 @@ function showRouteOptionsOnly(){ [...$("routes").children].forEach((bt,j)=>{ con
 function saveRecent(a,b){
   if(a.label==="My location") return;
   const key=p=>p.label+"|"+p.lat.toFixed(3);
-  let list=store.get("tc_recent",[]).filter(t=>!(key(t.a)===key(a)&&key(t.b)===key(b)));
+  let list=store.get("tc_recent",[]).filter(validTrip).filter(t=>!(key(t.a)===key(a)&&key(t.b)===key(b)));
   list.unshift({a,b}); store.set("tc_recent",list.slice(0,4)); renderRecent();
 }
+const validTrip=t=>t&&t.a&&t.b&&typeof t.a.lat==="number"&&typeof t.b.lat==="number"&&typeof t.a.label==="string"&&typeof t.b.label==="string";
 function renderRecent(){
-  const list=store.get("tc_recent",[]), box=$("recent"); box.replaceChildren(); box.hidden=!list.length;
+  const list=store.get("tc_recent",[]).filter(validTrip), box=$("recent"); box.replaceChildren(); box.hidden=!list.length;
   if(!list.length) return;
-  box.appendChild(el("p",null,"Recent trips"));
-  list.forEach(t=>{
-    if(!t||!t.a||!t.b||typeof t.a.lat!=="number"||typeof t.b.lat!=="number") return;
-    const c=el("button","chip",`${t.a.label} to ${t.b.label}`); c.type="button";
-    c.onclick=()=>{ setPlace("from",t.a); setPlace("to",t.b); run(); };
-    box.appendChild(c);
+  const head=el("header"); head.appendChild(el("span",null,"Recent trips"));
+  const all=el("button",null,"Clear all"); all.type="button";
+  all.onclick=()=>{ store.set("tc_recent",[]); renderRecent(); };
+  head.appendChild(all); box.appendChild(head);
+  const ul=el("ul");
+  list.forEach((t,i)=>{
+    const name=`${t.a.label} to ${t.b.label}`, li=el("li","chip");
+    const use=el("button","use",name); use.type="button"; use.title=name;
+    use.onclick=()=>{ setPlace("from",t.a); setPlace("to",t.b); run(); };
+    const del=el("button","del","×"); del.type="button"; del.setAttribute("aria-label","Remove "+name+" from recent trips");
+    del.onclick=()=>{ const cur=store.get("tc_recent",[]).filter(validTrip); cur.splice(i,1); store.set("tc_recent",cur); renderRecent(); };
+    li.appendChild(use); li.appendChild(del); ul.appendChild(li);
   });
+  box.appendChild(ul);
 }
 renderRecent();
 

@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Toll Check PH: route and toll fees for Philippine expressways</title>
 <meta name="description" content="Plan a drive in Luzon and see the exact toll you'll pay on NLEX, SCTEX, TPLEX, SLEX, Skyway, STAR, CALAX, CAVITEX and more.">
-<meta name="theme-color" content="#0b6b47">
+<meta name="theme-color" content="#01412c">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <script src="theme.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +28,7 @@
   <button class="grab" id="grab" type="button" aria-label="Show or hide trip details"><i></i><span id="peekText">Plan a trip</span></button>
   <div class="scroll">
     <div class="brand">
-      <div class="shield" aria-hidden="true">₱</div>
+      <img class="logo" src="icon-192.png" width="44" height="44" alt="Toll Check PH logo">
       <div><h1>Toll Check PH</h1><p>Know your toll before you drive</p></div>
     </div>
 
@@ -80,6 +83,8 @@
       <div id="routesWrap" hidden>
         <h2>Pick the route you'll drive</h2>
         <div id="routes"></div>
+        <p class="optnote" id="optNote" hidden><span class="spin"></span>Checking for expressway options…</p>
+        <p class="optnote">Times are without traffic. Expressways are usually quicker than shown at busy hours.</p>
       </div>
 
       <h2 id="legsTitle">Where you'll pay</h2>

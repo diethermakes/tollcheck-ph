@@ -1,0 +1,22 @@
+{
+ "name": "Toll Check PH",
+ "short_name": "Toll Check",
+ "description": "Know your toll before you drive. Toll fees for Philippine expressways.",
+ "start_url": "/",
+ "display": "standalone",
+ "background_color": "#01412c",
+ "theme_color": "#01412c",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  }
+ ]
+}

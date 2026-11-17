@@ -3,9 +3,9 @@
 // so these only need to be roughly right. Correct any that look off (right-click a spot
 // in Google Maps to copy its coordinates).
 const PLAZAS = {
- NLEX:{"Balintawak":[14.6575,120.9990],"Mindanao Ave.":[14.7000,121.0080],"Karuhatan":[14.6950,120.9750],"Valenzuela":[14.7085,120.9880],
-  "Meycauayan":[14.7455,120.9790],"Marilao":[14.7700,120.9620],"Ciudad de Victoria":[14.7930,120.9500],"Bocaue":[14.8060,120.9400],
-  "Tambubong":[14.8200,120.9330],"Balagtas":[14.8390,120.9060],"Sta. Rita":[14.8590,120.8850],"Pulilan":[14.9040,120.8430],
+ NLEX:{"Balintawak":[14.6562,121.0000],"Mindanao Ave.":[14.6935,121.0164],"Karuhatan":[14.6944,120.9793],"Valenzuela":[14.7093,120.9927],
+  "Meycauayan":[14.7459,120.9725],"Marilao":[14.7766,120.9560],"Ciudad de Victoria":[14.7914,120.9503],"Bocaue":[14.8095,120.9381],
+  "Tambubong":[14.8200,120.9330],"Balagtas":[14.8408,120.8995],"Sta. Rita":[14.8590,120.8850],"Pulilan":[14.9040,120.8430],
   "San Simon":[14.9950,120.7780],"San Fernando":[15.0550,120.6980],"Mexico":[15.0870,120.6780],"Angeles":[15.1400,120.6120],
   "Dau":[15.1790,120.5940],"Sta. Ines":[15.2230,120.5790],"Tabang":[14.8380,120.8700],
   "Mabalacat (Mabiga)":[15.2060,120.5650],"Clark South":[15.1680,120.5270],"Porac":[15.0980,120.5110],"Floridablanca":[14.9980,120.4980],
@@ -28,5 +28,5 @@ const PLAZAS = {
  NAIAX:{"Skyway":[14.5230,121.0230],"Andrews Ave./Terminal 3":[14.5210,121.0150],"NAIA Terminal 3":[14.5200,121.0160],"Aurora Blvd. (Tramo)":[14.5250,121.0050],
   "NAIA Terminal 1":[14.5090,121.0030],"NAIA Terminal 2":[14.5120,120.9950],"Entertainment City":[14.5180,120.9850],"Macapagal Blvd.":[14.5150,120.9880],"CAVITEX":[14.5080,120.9900]},
  CONN:{"España":[14.6130,120.9930],"Magsaysay":[14.6020,121.0050],"C-3 Road/5th Ave.":[14.6440,120.9830]},
- HARBOR:{"Karuhatan/Valenzuela":[14.6950,120.9750],"C-3 Road/5th Ave.":[14.6440,120.9830],"R-10/Port of Manila":[14.6400,120.9550],"Malabon/Dagat-Dagatan":[14.6550,120.9650]}
+ HARBOR:{"Karuhatan/Valenzuela":[14.6944,120.9793],"C-3 Road/5th Ave.":[14.6440,120.9830],"R-10/Port of Manila":[14.6400,120.9550],"Malabon/Dagat-Dagatan":[14.6550,120.9650]}
 };

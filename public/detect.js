@@ -2,8 +2,11 @@
 function classifyRoad(name, lat){
   const n=(name||"").toLowerCase();
   if(!n) return null;
+  if(/service road|frontage/.test(n)) return null;                       // side roads beside an expressway are free
   if(/nlex connector|connector road/.test(n)) return "CONN";
-  if(/harbor link|segment 10|segment 9/.test(n)) return "HARBOR";
+  // Karuhatan to NLEX (Segment 9) and the Mindanao Avenue link (Segment 8) are priced in the NLEX table
+  if(/segment 9|segment 8|mindanao avenue link/.test(n)) return "NLEX";
+  if(/harbor link|segment 10/.test(n)) return "HARBOR";
   if(/skyway/.test(n)) return lat>14.556 ? "SKY3" : "SLEX";
   if(/north luzon expressway|nlex|subic.clark.tarlac|sctex/.test(n)) return "NLEX";
   if(/tarlac.pangasinan.la union|tplex/.test(n)) return "TPLEX";
@@ -28,7 +31,7 @@ function detectLegs(route){
   const runs=[];
   const add=(key,first,last,dist,sky)=>{
     const prev=runs[runs.length-1];
-    if(prev && prev.key===key && km(prev.end,first)<6){ prev.end=last; prev.dist+=dist; prev.sky=prev.sky||sky; }
+    if(prev && prev.key===key && km(prev.end,first)<4){ prev.end=last; prev.dist+=dist; prev.sky=prev.sky||sky; }
     else runs.push({key,start:first,end:last,dist,sky});
   };
   for(const leg of route.legs) for(const st of leg.steps){

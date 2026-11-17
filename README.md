@@ -30,7 +30,8 @@ You can also paste a Google Maps share link instead of typing the trip.
 - **Vehicle class** options: Class 1 (cars, SUVs, vans), Class 2 (buses, light trucks), Class 3 (large trucks)
 - **Travel time and distance**
 - **Light and dark mode**
-- **Recent trips** for quick reuse
+- **Recent trips** for quick reuse, which you can remove one by one or clear all at once
+- **Home screen shortcut:** on your phone, use your browser's "Add to Home Screen" option to open it like an app
 
 ## Expressways covered
 
@@ -54,6 +55,7 @@ Please keep these in mind:
 
 - **Class 1 rates are exact.** Class 2 and Class 3 are estimates and may be off by a few pesos.
 - **Travel time has no live traffic.** Use Google Maps or Waze for the actual travel time.
+- **You get both free and expressway options where they exist.** The site also checks for expressways between your start and destination, including short ones inside Metro Manila, and lists them next to the no-toll route.
 - **The suggested route can differ from Google Maps or Waze.** If it does, pick another route option, or change the entry and exit plaza under "Entering or exiting somewhere else?".
 - **Rates can change.** The posted rate at the toll plaza is always the final amount.
 
@@ -101,6 +103,7 @@ The site is plain HTML, CSS and JavaScript with no build step, hosted on Netlify
 | public/plazas.js | Toll plaza coordinates |
 | public/detect.js | Works out which expressways and plazas a route uses |
 | public/theme.js | Remembers the light or dark mode choice |
+| public/manifest.webmanifest and the icon files | App name, colors and logo for the browser tab and home screen |
 | netlify/functions/resolve.mjs | Opens short Google Maps links |
 | netlify.toml | Hosting settings and security headers |
 
