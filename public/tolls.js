@@ -1,4 +1,7 @@
-// TRB Class 1 toll matrices, effective 1 Feb 2026 (VAT included). Update here when rates change.
+// Class 1 toll matrices, VAT included. Update here when rates change.
+// NLEX/SCTEX 20 Jan 2026 · Skyway-SLEX-MCX 1 Jul 2026 · STAR 1 Jul 2026 · CALAX 9 Aug 2026 · CAVITEX 9 May 2026
+// Skyway Stage 3, TPLEX, NAIAX, NLEX Connector, Harbor Link: latest TRB matrices (no change in 2026).
+// Checked 17 Nov 2026 against TRB publications and tollcalculator.ph.
 const EXP = {
  NLEX:{name:"NLEX / SCTEX",rfid:"Easytrip",
   cols:["Balintawak","Mindanao Ave.","Karuhatan","Valenzuela","Meycauayan","Marilao","Ciudad de Victoria","Bocaue","Tambubong","Balagtas","Sta. Rita","Pulilan","San Simon","San Fernando","Mexico","Angeles","Dau","Tipo/Subic","Dinalupihan","Floridablanca","Porac","Clark South","Mabalacat (Mabiga)","Clark North","Dolores","Bamban/New Clark City","Concepcion","Hacienda Luisita","Tabang","Sta. Ines"],
@@ -46,28 +49,28 @@ Sison|290,260,232,212,192,127,75,56,21,-
 Rosario/Baguio|311,281,253,232,212,147,95,76,41,21`},
  SLEX:{name:"SLEX / Skyway / MCX",rfid:"Autosweep",
   cols:["Magallanes","Buendia","C-5","Amorsolo","Bicutan","Magallanes (Skyway)","NAIAX","Sucat","Alabang","Filinvest","MCX","Susana Heights","San Pedro","Southwoods","Carmona","Mamplasan","Sta. Rosa","ABI/Greenfield","Cabuyao","Silangan","Calamba","Merville"],
-  rows:`Buendia|-,-,-,-,72,-,0,118,164,-,208,185,192,210,216,228,239,253,263,269,290,-
-C-5|-,-,-,-,49,-,-,84,118,124,162,139,146,164,170,182,193,207,217,223,244,-
-Amorsolo|-,-,-,-,72,-,0,118,164,-,208,185,192,210,216,228,239,253,263,269,290,-
-Bicutan|49,72,49,72,-,72,72,34,69,75,113,90,97,115,121,133,144,158,168,174,195,-
-Magallanes (Skyway)|-,-,-,-,72,-,0,118,164,-,208,185,192,210,216,228,239,253,263,269,290,-
-NAIAX|-,0,-,0,72,0,-,118,164,-,208,185,192,210,216,228,239,253,263,269,290,-
-Sucat|84,118,84,118,34,118,118,-,34,40,78,55,62,80,86,98,109,123,133,139,160,-
-Alabang|118,164,118,164,69,164,164,34,-,6,44,21,28,46,52,64,75,89,99,105,126,-
-Filinvest|124,-,124,-,75,-,-,40,6,-,38,15,23,40,47,59,69,84,93,100,121,-
-MCX|162,208,162,208,113,208,208,78,44,38,-,23,30,48,54,66,77,91,101,107,128,-
-Susana Heights|139,185,139,185,90,185,185,55,21,15,23,-,7,25,31,43,54,68,78,84,105,-
-San Pedro|146,192,146,192,97,192,192,62,28,23,30,7,-,17,24,36,46,61,71,77,98,-
-Southwoods|164,210,164,210,115,210,210,80,46,40,48,25,17,-,7,19,29,44,53,60,81,-
-Carmona|170,216,170,216,121,216,216,86,52,47,54,31,24,7,-,12,22,37,46,53,74,-
-Mamplasan|182,228,182,228,133,228,228,98,64,59,66,43,36,19,12,-,10,25,35,41,62,-
-Sta. Rosa|193,239,193,239,144,239,239,109,75,69,77,54,46,29,22,10,-,15,24,31,52,-
-ABI/Greenfield|207,253,207,253,158,253,253,123,89,84,91,68,61,44,37,25,15,-,9,16,37,-
-Cabuyao|217,263,217,263,168,263,263,133,99,93,101,78,71,53,46,35,24,9,-,7,27,-
-Silangan|223,269,223,269,174,269,269,139,105,100,107,84,77,60,53,41,31,16,7,-,21,-
-Calamba|244,290,244,290,195,290,290,160,126,121,128,105,98,81,74,62,52,37,27,21,-,-
+  rows:`Buendia|-,-,-,-,72,-,0,118,164,-,-,-,-,-,-,-,-,-,-,-,-,-
+C-5|-,-,-,-,49,-,-,84,118,-,-,-,-,-,-,-,-,-,-,-,-,-
+Amorsolo|-,-,-,-,72,-,0,118,164,-,-,-,-,-,-,-,-,-,-,-,-,-
+Bicutan|49,72,49,72,-,72,72,34,69,-,-,-,-,-,-,-,-,-,-,-,-,-
+Magallanes (Skyway)|-,-,-,-,72,-,0,118,164,-,-,-,-,-,-,-,-,-,-,-,-,-
+NAIAX|-,0,-,0,72,0,-,118,164,-,-,-,-,-,-,-,-,-,-,-,-,-
+Sucat|84,118,84,118,34,118,118,-,34,-,-,-,-,-,-,-,-,-,-,-,-,-
+Alabang|118,164,118,164,69,164,164,34,-,-,-,-,-,-,-,-,-,-,-,-,-,-
+Filinvest|124,170,124,170,75,170,170,40,6,-,-,-,-,-,-,-,-,-,-,-,-,-
+MCX|164,210,164,210,115,210,210,80,46,40,-,-,-,-,-,-,-,-,-,-,-,-
+Susana Heights|141,187,141,187,92,187,187,57,23,17,23,-,-,-,-,-,-,-,-,-,-,-
+San Pedro|148,194,148,194,99,194,194,64,30,24,31,8,-,-,-,-,-,-,-,-,-,-
+Southwoods|167,213,167,213,118,213,213,83,49,43,50,27,19,-,-,-,-,-,-,-,-,-
+Carmona|175,221,175,221,126,221,221,91,57,51,57,34,26,7,-,-,-,-,-,-,-,-
+Mamplasan|187,233,187,233,138,233,233,103,69,63,70,47,39,20,13,-,-,-,-,-,-,-
+Sta. Rosa|199,245,199,245,150,245,245,115,81,75,81,58,50,31,24,11,-,-,-,-,-,-
+ABI/Greenfield|215,261,215,261,166,261,261,131,97,91,97,74,66,48,40,27,16,-,-,-,-,-
+Cabuyao|225,271,225,271,176,271,271,141,107,101,107,84,77,58,50,38,26,10,-,-,-,-
+Silangan|232,278,232,278,183,278,278,148,114,108,114,91,84,65,57,45,33,17,7,-,-,-
+Calamba|255,301,255,301,206,301,301,171,137,131,137,114,106,88,80,67,56,40,30,23,-,-
 Merville|49,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-,-
-Don Bosco|-,-,-,-,72,-,0,118,164,-,208,185,192,210,216,228,239,253,263,269,290,-`},
+Don Bosco|-,-,-,-,72,-,0,118,164,-,-,-,-,-,-,-,-,-,-,-,-,-`},
  SKY3:{name:"Skyway Stage 3",rfid:"Autosweep",
   cols:["Buendia","Quirino","Plaza Dilao","Nagtahan","E. Rodriguez","Quezon Ave.","Balintawak"],
   rows:`Quirino|105,-,-,-,-,264,264
@@ -75,28 +78,33 @@ Nagtahan|105,-,-,-,-,264,264
 E. Rodriguez|-,-,-,-,-,129,129
 Quezon Ave.|264,264,-,264,129,-,129
 Balintawak|264,264,-,264,129,129,-
-NLEX|264,264,-,264,129,129,-`},
+NLEX|264,264,-,264,129,129,-
+Plaza Dilao|105,-,-,-,-,-,-`},
  STAR:{name:"STAR Tollway",rfid:"Autosweep",
-  cols:["Calamba","Sto. Tomas","Tanauan","Malvar","Sto. Toribio","Lipa","Ibaan"],
-  rows:`Sto. Tomas|34,-,13,29,49,60,90
-Tanauan|43,13,-,15,35,47,77
-Malvar|58,29,15,-,20,30,61
-Sto. Toribio|76,49,35,20,-,11,41
-Lipa|86,60,47,30,11,-,30
-Ibaan|114,90,77,61,41,30,-
-Batangas|135,113,99,83,64,53,23`},
+  cols:["Calamba", "Sto. Tomas", "Tanauan", "Malvar", "Sto. Toribio", "Lipa", "Ibaan"],
+  rows:`Sto. Tomas|37,-,14,31,52,64,97
+Tanauan|51,14,-,17,38,50,83
+Malvar|68,31,17,-,21,33,66
+Sto. Toribio|89,52,38,21,-,12,45
+Lipa|101,64,50,33,12,-,33
+Ibaan|134,97,83,66,45,33,-
+Batangas|158,121,107,90,69,57,24`},
  CALAX:{name:"CALAX",rfid:"Easytrip",
-  cols:["Greenfield","Technopark","Laguna Blvd.","Sta. Rosa/Tagaytay","Silang East"],
-  rows:`Technopark|-,-,15,29,48
-Laguna Blvd.|30,15,-,14,33
-Sta. Rosa/Tagaytay|44,29,14,-,27
-Silang East|64,48,33,27,-
-Silang Interchange|81,66,51,45,17`},
+  cols:["Greenfield","Technopark","Laguna Blvd.","Sta. Rosa/Tagaytay","Silang East","Silang Interchange"],
+  rows:`Technopark|-,-,15,29,48,-
+Laguna Blvd.|30,15,-,14,33,-
+Sta. Rosa/Tagaytay|44,29,14,-,27,-
+Silang East|64,48,33,27,-,-
+Silang Interchange|81,66,51,45,17,-
+Governor's Drive|117,101,86,80,53,35`},
  CAVITEX:{name:"CAVITEX",rfid:"Easytrip",
-  cols:["Parañaque","Bacoor/Zapote","Kawit","Sucat Rd./Dr. A. Santos Ave."],
-  rows:`Bacoor/Zapote|39,-,88,38
-Kawit|127,88,-,126
-C5 Rd. Ext./C.P. Garcia|38,38,126,-`},
+  cols:["Parañaque","Bacoor/Zapote","Kawit","Sucat Rd./Dr. A. Santos Ave.","C5 Rd. Ext./C.P. Garcia","Taguig"],
+  rows:`Bacoor/Zapote|39,-,88,38,38,97
+Kawit|127,88,-,126,126,185
+C5 Rd. Ext./C.P. Garcia|38,38,126,-,-,59
+Sucat Rd./Dr. A. Santos Ave.|38,38,126,-,-,59
+Taguig|97,97,185,59,59,-
+Merville|-,-,-,-,-,32`},
  NAIAX:{name:"NAIAX",rfid:"Autosweep",
   cols:["Skyway","Andrews Ave./Terminal 3","Aurora Blvd. (Tramo)","NAIA Terminal 1","NAIA Terminal 2","Entertainment City","Macapagal Blvd.","CAVITEX"],
   rows:`Andrews Ave./Terminal 3|35,-,-,45,45,45,45,45
@@ -134,4 +142,7 @@ function fare(k,a,b){
   return null;
 }
 const CLS={1:1,2:2.5,3:3};
+// Class 2 and 3 multipliers per expressway. Exact (2x, 3x) where the TRB matrix confirms it; NLEX family is an estimate.
+const CLS_BY={SLEX:{2:2,3:3},SKY3:{2:2,3:3},STAR:{2:2,3:3},CALAX:{2:2,3:3}};
+const mult=(k,c)=>(CLS_BY[k]&&CLS_BY[k][c])||CLS[c];
 

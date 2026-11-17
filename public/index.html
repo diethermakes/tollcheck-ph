@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Toll Check PH: route and toll fees for Philippine expressways</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<title>Toll Check PH: toll fees for Philippine expressways</title>
 <meta name="description" content="Plan a drive in Luzon and see the exact toll you'll pay on NLEX, SCTEX, TPLEX, SLEX, Skyway, STAR, CALAX, CAVITEX and more.">
 <meta name="theme-color" content="#01412c">
 <link rel="icon" type="image/png" href="favicon.png">
@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -26,86 +26,99 @@
 
 <main class="panel" id="panel">
   <button class="grab" id="grab" type="button" aria-label="Show or hide trip details"><i></i><span id="peekText">Plan a trip</span></button>
-  <div class="scroll">
-    <div class="brand">
-      <img class="logo" src="icon-192.png" width="44" height="44" alt="Toll Check PH logo">
-      <div><h1>Toll Check PH</h1><p>Know your toll before you drive</p></div>
-    </div>
+  <div class="scroll" id="scroll">
+    <header class="brand">
+      <img src="icon-192.png" width="40" height="40" alt="">
+      <h1>Toll Check PH</h1>
+      <button class="done" id="done" type="button">Done</button>
+    </header>
 
-    <div class="trip">
-      <div class="stop" id="fromRow">
-        <span class="dot" aria-hidden="true"></span>
-        <input id="from" type="text" placeholder="Where from?" aria-label="Starting point" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="next">
-        <button class="clear" id="fromX" type="button" aria-label="Clear starting point" hidden>×</button>
+    <section class="plan">
+      <div class="trip">
+        <div class="rail" aria-hidden="true"><span class="ring"></span><span class="line"></span><span class="pinmark"></span></div>
+        <div class="fields">
+          <div class="field" id="fromRow">
+            <input id="from" type="text" placeholder="Starting point" aria-label="Starting point" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="next">
+            <button class="clear" id="fromX" type="button" aria-label="Clear starting point" hidden>×</button>
+          </div>
+          <div class="field" id="toRow">
+            <input id="to" type="text" placeholder="Where to?" aria-label="Destination" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="go">
+            <button class="clear" id="toX" type="button" aria-label="Clear destination" hidden>×</button>
+          </div>
+        </div>
+        <button class="swap" id="swap" type="button" aria-label="Swap start and destination" title="Swap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 20l-4-4M17 20V4M17 4l4 4"/></svg>
+        </button>
       </div>
-      <div class="stop" id="toRow">
-        <span class="dot end" aria-hidden="true"></span>
-        <input id="to" type="text" placeholder="Where to?" aria-label="Destination" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="go">
-        <button class="clear" id="toX" type="button" aria-label="Clear destination" hidden>×</button>
+      <div class="sugg" id="sugg" role="listbox" hidden></div>
+      <div class="actions">
+        <button class="go" id="go" type="button">Check toll</button>
+        <button class="here" id="me" type="button" aria-label="Start from my location" title="Start from my location">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+        </button>
       </div>
-      <button class="swap" id="swap" type="button" aria-label="Swap start and destination" title="Swap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 20l-4-4M17 20V4M17 4l4 4"/></svg>
-      </button>
-    </div>
-    <div class="sugg" id="sugg" hidden></div>
+      <div class="msg" id="msg" role="status" hidden></div>
+    </section>
 
-    <div class="actions">
-      <button class="btn primary" id="go" type="button">Check toll</button>
-      <button class="btn icon" id="me" type="button" aria-label="Start from my location" title="Start from my location">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
-      </button>
-    </div>
-
-    <div class="chips" id="recent" hidden></div>
-
-    <details id="linkBox">
-      <summary>Paste a Google Maps link instead</summary>
-      <div class="linkrow">
-        <input id="link" type="text" placeholder="https://maps.app.goo.gl/…" aria-label="Google Maps link" autocomplete="off">
-        <button class="btn" id="useLink" type="button">Use link</button>
-      </div>
-    </details>
-
-    <div class="msg" id="msg" role="status" hidden></div>
+    <section class="start" id="start">
+      <div class="list" id="recent" hidden></div>
+      <div class="list" id="popular"></div>
+      <details class="linkbox" id="linkBox">
+        <summary>Paste a Google Maps link</summary>
+        <div class="linkrow">
+          <input id="link" type="text" placeholder="https://maps.app.goo.gl/…" aria-label="Google Maps link" autocomplete="off">
+          <button id="useLink" type="button">Use link</button>
+        </div>
+      </details>
+    </section>
 
     <section id="result" hidden>
-      <div class="ticket">
-        <div class="lbl" id="tlabel">Total toll</div>
-        <div class="total" id="total">₱0</div>
-        <div class="sub" id="tsub"></div>
-        <div class="seg" id="cls" role="group" aria-label="Vehicle class">
-          <button type="button" data-cls="1" class="on">Class 1 car</button>
-          <button type="button" data-cls="2">Class 2 bus</button>
-          <button type="button" data-cls="3">Class 3 truck</button>
+      <article class="receipt" aria-label="Toll estimate">
+        <div class="due">
+          <span id="tlabel">Total toll</span>
+          <strong id="total">₱0</strong>
+          <span id="tsub"></span>
         </div>
-      </div>
+        <div class="cls" id="cls" role="group" aria-label="Vehicle class">
+          <button type="button" data-cls="1" class="on" title="Class 1: cars, SUVs and vans">Car</button>
+          <button type="button" data-cls="2" title="Class 2: buses and light trucks">Bus</button>
+          <button type="button" data-cls="3" title="Class 3: large trucks">Truck</button>
+        </div>
+        <div class="paper">
+          <div id="lines"></div>
+          <p class="source" id="source">Latest TRB rates, checked 17 November 2026, VAT included.</p>
+        </div>
+      </article>
 
-      <div id="routesWrap" hidden>
-        <h2>Pick the route you'll drive</h2>
+      <div class="routes" id="routesWrap" hidden>
+        <h2>Routes</h2>
         <div id="routes"></div>
-        <p class="optnote" id="optNote" hidden><span class="spin"></span>Checking for expressway options…</p>
-        <p class="optnote">Times are without traffic. Expressways are usually quicker than shown at busy hours.</p>
+        <p class="hint" id="optNote" hidden><span class="spin"></span>Looking for expressway routes</p>
+        <p class="hint">Times are without traffic. Expressways are usually faster than shown at busy hours.</p>
       </div>
 
-      <h2 id="legsTitle">Where you'll pay</h2>
-      <div id="lines"></div>
-
-      <div class="go" id="handoff"></div>
+      <div class="handoff" id="handoff"></div>
 
       <details class="edit">
         <summary>Entering or exiting somewhere else?</summary>
         <div id="legs"></div>
-        <button class="btn" id="add" type="button">Add an expressway</button>
+        <button class="add" id="add" type="button">Add an expressway</button>
       </details>
     </section>
 
-    <p class="foot">Rates are from the Toll Regulatory Board matrices effective 1 February 2026, VAT included. Class 2 and 3 are estimates. Always check the posted rate at the plaza. Your searches and route points are sent to OpenStreetMap, Photon and OSRM to draw the route. This site stores nothing except your recent trips and theme, kept on your own device.</p>
+    <details class="about">
+      <summary>About these rates and your privacy</summary>
+      <p>Toll rates come from the latest Toll Regulatory Board matrices, checked on 17 November 2026, with VAT included: NLEX and SCTEX from 20 January 2026, Skyway and SLEX from 1 July 2026, STAR from 1 July 2026, CAVITEX from 9 May 2026 and CALAX from 9 August 2026. Car rates are exact. Bus and truck rates are exact on Skyway, SLEX, STAR and CALAX, and estimates elsewhere. The rate posted at the toll plaza is always the final amount.</p>
+      <p>Places you search and your route points are sent to OpenStreetMap, Photon and OSRM to find places and draw the route. Your recent trips and theme are saved only on this device.</p>
+      <p>Wrong toll or plaza? Email tollcheckph@gmail.com.</p>
+    </details>
   </div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous"></script>
 <script src="tolls.js"></script>
 <script src="plazas.js"></script>
+<script src="hints.js"></script>
 <script src="detect.js"></script>
 <script src="app.js"></script>
 </body>

@@ -30,7 +30,7 @@ You can also paste a Google Maps share link instead of typing the trip.
 - **Vehicle class** options: Class 1 (cars, SUVs, vans), Class 2 (buses, light trucks), Class 3 (large trucks)
 - **Travel time and distance**
 - **Light and dark mode**
-- **Recent trips** for quick reuse, which you can remove one by one or clear all at once
+- **Popular trips** to get started, and **recent trips** for quick reuse, which you can remove one by one or clear all at once
 - **Home screen shortcut:** on your phone, use your browser's "Add to Home Screen" option to open it like an app
 
 ## Expressways covered
@@ -40,8 +40,8 @@ You can also paste a Google Maps share link instead of typing the trip.
 | NLEX and SCTEX | Easytrip |
 | TPLEX | Easytrip |
 | NLEX Connector and NLEX Harbor Link | Easytrip |
-| CAVITEX | Easytrip |
-| CALAX | Easytrip |
+| CAVITEX and the CAVITEX-C5 Link | Easytrip |
+| CALAX (now up to Governor's Drive) | Easytrip |
 | SLEX, Skyway and MCX | Autosweep |
 | Skyway Stage 3 | Autosweep |
 | STAR Tollway | Autosweep |
@@ -49,11 +49,11 @@ You can also paste a Google Maps share link instead of typing the trip.
 
 ## How accurate is it?
 
-Toll rates come from the Toll Regulatory Board (TRB) toll matrices effective 1 February 2026, with VAT included.
+Toll rates come from the latest Toll Regulatory Board (TRB) toll matrices, checked on 17 November 2026, with VAT included: NLEX and SCTEX (20 January 2026), Skyway and SLEX (1 July 2026), STAR (1 July 2026), CAVITEX (9 May 2026) and CALAX (9 August 2026). Skyway Stage 3, TPLEX, NAIAX, the NLEX Connector and Harbor Link had no rate change in 2026.
 
 Please keep these in mind:
 
-- **Class 1 rates are exact.** Class 2 and Class 3 are estimates and may be off by a few pesos.
+- **Class 1 rates are exact.** Class 2 and 3 are exact on Skyway, SLEX, STAR and CALAX, and estimates elsewhere.
 - **Travel time has no live traffic.** Use Google Maps or Waze for the actual travel time.
 - **You get both free and expressway options where they exist.** The site also checks for expressways between your start and destination, including short ones inside Metro Manila, and lists them next to the no-toll route.
 - **The suggested route can differ from Google Maps or Waze.** If it does, pick another route option, or change the entry and exit plaza under "Entering or exiting somewhere else?".
@@ -102,6 +102,7 @@ The site is plain HTML, CSS and JavaScript with no build step, hosted on Netlify
 | public/tolls.js | TRB toll matrices. Update this when rates change. |
 | public/plazas.js | Toll plaza coordinates |
 | public/detect.js | Works out which expressways and plazas a route uses |
+| public/hints.js | Local route knowledge: known entrance and exit pairs between two areas |
 | public/theme.js | Remembers the light or dark mode choice |
 | public/manifest.webmanifest and the icon files | App name, colors and logo for the browser tab and home screen |
 | netlify/functions/resolve.mjs | Opens short Google Maps links |
