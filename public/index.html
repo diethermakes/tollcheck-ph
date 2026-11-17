@@ -5,117 +5,98 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Toll Check PH: route and toll fees for Philippine expressways</title>
 <meta name="description" content="Plan a drive in Luzon and see the exact toll you'll pay on NLEX, SCTEX, TPLEX, SLEX, Skyway, STAR, CALAX, CAVITEX and more.">
+<meta name="theme-color" content="#0b6b47">
+<script src="theme.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800&family=Overpass+Mono:wght@600&display=swap" rel="stylesheet">
-<style>
-:root{--sign:#0a5c3e;--sign-ink:#fff;--bg:#eef1ee;--surface:#fff;--ink:#15211b;--muted:#5b6b62;--line:#cfd8d2;--amber:#f2b705;--amber-ink:#2a2100;--warn:#9a3b12;color-scheme:light}
-@media (prefers-color-scheme:dark){:root{--sign:#0e6b49;--sign-ink:#f2fff8;--bg:#0f1512;--surface:#18211c;--ink:#e6eee9;--muted:#9db0a5;--line:#2c3a32;--warn:#ff9a6b;color-scheme:dark}}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--ink);font-family:"Overpass",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.45}
-.app{display:grid;grid-template-columns:400px 1fr;height:100%}
-.side{overflow-y:auto;padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
-#map{height:100%;min-height:320px;background:var(--line)}
-@media (max-width:820px){.app{grid-template-columns:1fr;grid-template-rows:42vh auto;height:auto}.side{order:2;overflow:visible}#map{order:1;height:42vh}}
-.sign{background:var(--sign);color:var(--sign-ink);border-radius:12px;padding:14px 16px;border:3px solid var(--sign-ink);outline:3px solid var(--sign);margin:3px}
-.sign h1{margin:0;font-size:1.7rem;font-weight:800;line-height:1.05}
-.sign p{margin:4px 0 0;font-size:.92rem;opacity:.92}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px}
-label{font-weight:600;display:block;margin:10px 0 4px;font-size:.92rem}
-label:first-child{margin-top:0}
-input[type=text],select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
-input:focus,select:focus,button:focus-visible{outline:3px solid var(--amber);outline-offset:1px}
-.field{position:relative}
-.sugg{position:absolute;z-index:1200;left:0;right:0;top:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;margin-top:2px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.18)}
-.sugg button{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:9px 12px;color:var(--ink);font:inherit;font-weight:400;border-radius:0}
-.sugg button:first-child{border-top:0}
-.sugg button:hover{background:var(--bg)}
-.sugg small{color:var(--muted);display:block}
-button{font:inherit;font-weight:700;border:0;border-radius:8px;padding:10px 14px;cursor:pointer}
-button:disabled{opacity:.6;cursor:wait}
-.primary{background:var(--sign);color:var(--sign-ink)}
-.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
-.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.hint{color:var(--muted);font-size:.85rem;margin:6px 0 0}
-.notice{margin-top:10px;padding:9px 11px;border-left:4px solid var(--amber);background:var(--bg);border-radius:6px;font-size:.92rem}
-.notice.err{border-left-color:var(--warn)}
-.ticket{margin-top:12px;background:var(--amber);color:var(--amber-ink);border-radius:12px;padding:16px;position:relative}
-.ticket::before,.ticket::after{content:"";position:absolute;top:50%;width:20px;height:20px;border-radius:50%;background:var(--bg);transform:translateY(-50%)}
-.ticket::before{left:-10px}.ticket::after{right:-10px}
-.ticket h2{margin:0;font-size:.95rem;font-weight:600}
-.total{font-family:"Overpass Mono",ui-monospace,monospace;font-size:3rem;line-height:1;margin:4px 0}
-.lines{border-top:2px dashed rgba(42,33,0,.45);margin-top:10px;padding-top:6px}
-.line{display:flex;justify-content:space-between;gap:10px;padding:6px 0}
-.line .what{font-weight:600}.line .meta{font-size:.82rem;opacity:.8}
-.line .amt{font-family:"Overpass Mono",ui-monospace,monospace;white-space:nowrap}
-.ticket a{display:inline-block;margin:10px 8px 0 0;background:var(--amber-ink);color:var(--amber);text-decoration:none;font-weight:700;border-radius:8px;padding:8px 12px;font-size:.9rem}
-.leg{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 0;border-top:1px dashed var(--line)}
-.leg:first-child{border-top:0}
-.leg .exp{grid-column:1/-1}
-.leg small{display:block;color:var(--muted);font-size:.78rem;margin-bottom:2px}
-.leg .x{grid-column:1/-1;background:none;border:1px solid var(--line);color:var(--muted);padding:6px;font-weight:400;font-size:.85rem}
-details summary{cursor:pointer;font-weight:600}
-.opt{display:block;width:100%;text-align:left;margin-top:6px;background:var(--bg);color:var(--ink);border:1px solid var(--line);font-weight:400;font-size:.9rem}
-.opt.on{border:2px solid var(--sign);font-weight:700}
-.foot{color:var(--muted);font-size:.8rem;margin:14px 2px}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div class="app">
-  <div class="side">
-    <header class="sign">
-      <h1>Toll Check PH</h1>
-      <p>Know your toll before you drive. Updated TRB rates for Luzon expressways.</p>
-    </header>
+<div id="map" aria-label="Route map"></div>
 
-    <section class="panel">
-      <label for="from">From</label>
-      <div class="field"><input type="text" id="from" placeholder="Starting point" autocomplete="off"><div class="sugg" id="fromS" hidden></div></div>
-      <label for="to">To</label>
-      <div class="field"><input type="text" id="to" placeholder="Destination" autocomplete="off"><div class="sugg" id="toS" hidden></div></div>
-      <div class="row">
-        <button class="primary" id="go">Get route and toll</button>
-        <button class="ghost" id="me">Use my location</button>
+<button class="fab" id="themeBtn" type="button" aria-label="Switch between light and dark mode" title="Light or dark mode">
+  <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+</button>
+
+<main class="panel" id="panel">
+  <button class="grab" id="grab" type="button" aria-label="Show or hide trip details"><i></i><span id="peekText">Plan a trip</span></button>
+  <div class="scroll">
+    <div class="brand">
+      <div class="shield" aria-hidden="true">₱</div>
+      <div><h1>Toll Check PH</h1><p>Know your toll before you drive</p></div>
+    </div>
+
+    <div class="trip">
+      <div class="stop" id="fromRow">
+        <span class="dot" aria-hidden="true"></span>
+        <input id="from" type="text" placeholder="Where from?" aria-label="Starting point" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="next">
+        <button class="clear" id="fromX" type="button" aria-label="Clear starting point" hidden>×</button>
       </div>
-      <details style="margin-top:12px">
-        <summary>Have a Google Maps link?</summary>
-        <label for="link">Paste the shared link</label>
-        <input type="text" id="link" placeholder="https://maps.app.goo.gl/…">
-        <div class="row"><button class="ghost" id="useLink">Use this link</button></div>
-      </details>
-      <div id="msg"></div>
-      <div id="routes" hidden></div>
-    </section>
+      <div class="stop" id="toRow">
+        <span class="dot end" aria-hidden="true"></span>
+        <input id="to" type="text" placeholder="Where to?" aria-label="Destination" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="go">
+        <button class="clear" id="toX" type="button" aria-label="Clear destination" hidden>×</button>
+      </div>
+      <button class="swap" id="swap" type="button" aria-label="Swap start and destination" title="Swap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 20l-4-4M17 20V4M17 4l4 4"/></svg>
+      </button>
+    </div>
+    <div class="sugg" id="sugg" hidden></div>
 
-    <section class="ticket" aria-live="polite">
-      <h2 id="tlabel">Total toll, Class 1</h2>
-      <div class="total" id="total">₱0</div>
-      <div id="tsub" style="font-size:.88rem">Enter a trip to see the toll.</div>
-      <div class="lines" id="lines"></div>
-      <div id="handoff"></div>
-    </section>
+    <div class="actions">
+      <button class="btn primary" id="go" type="button">Check toll</button>
+      <button class="btn icon" id="me" type="button" aria-label="Start from my location" title="Start from my location">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+      </button>
+    </div>
 
-    <section class="panel">
-      <label for="cls">Vehicle class</label>
-      <select id="cls">
-        <option value="1">Class 1: cars, SUVs, vans</option>
-        <option value="2">Class 2: buses, light trucks (estimate)</option>
-        <option value="3">Class 3: large trucks (estimate)</option>
-      </select>
-      <details style="margin-top:12px">
-        <summary>Adjust toll entrances and exits</summary>
-        <p class="hint">Detected from your route. Change a plaza if you plan to enter or exit somewhere else.</p>
+    <div class="chips" id="recent" hidden></div>
+
+    <details id="linkBox">
+      <summary>Paste a Google Maps link instead</summary>
+      <div class="linkrow">
+        <input id="link" type="text" placeholder="https://maps.app.goo.gl/…" aria-label="Google Maps link" autocomplete="off">
+        <button class="btn" id="useLink" type="button">Use link</button>
+      </div>
+    </details>
+
+    <div class="msg" id="msg" role="status" hidden></div>
+
+    <section id="result" hidden>
+      <div class="ticket">
+        <div class="lbl" id="tlabel">Total toll</div>
+        <div class="total" id="total">₱0</div>
+        <div class="sub" id="tsub"></div>
+        <div class="seg" id="cls" role="group" aria-label="Vehicle class">
+          <button type="button" data-cls="1" class="on">Class 1 car</button>
+          <button type="button" data-cls="2">Class 2 bus</button>
+          <button type="button" data-cls="3">Class 3 truck</button>
+        </div>
+      </div>
+
+      <div id="routesWrap" hidden>
+        <h2>Pick the route you'll drive</h2>
+        <div id="routes"></div>
+      </div>
+
+      <h2 id="legsTitle">Where you'll pay</h2>
+      <div id="lines"></div>
+
+      <div class="go" id="handoff"></div>
+
+      <details class="edit">
+        <summary>Entering or exiting somewhere else?</summary>
         <div id="legs"></div>
-        <div class="row"><button class="ghost" id="add">Add expressway leg</button></div>
+        <button class="btn" id="add" type="button">Add an expressway</button>
       </details>
     </section>
 
-    <p class="foot">Rates: Toll Regulatory Board matrices effective 1 February 2026, VAT included. Always check the posted rate at the plaza. Map data © OpenStreetMap contributors. Routing by OSRM. Search by Photon. Privacy: the places you search and your route points are sent to these map services to draw your route. Nothing is stored by this site.</p>
+    <p class="foot">Rates are from the Toll Regulatory Board matrices effective 1 February 2026, VAT included. Class 2 and 3 are estimates. Always check the posted rate at the plaza. Your searches and route points are sent to OpenStreetMap, Photon and OSRM to draw the route. This site stores nothing except your recent trips and theme, kept on your own device.</p>
   </div>
-  <div id="map"></div>
-</div>
+</main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous"></script>
 <script src="tolls.js"></script>
