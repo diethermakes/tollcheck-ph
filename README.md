@@ -5,7 +5,8 @@ A map-based toll calculator for Philippine expressways. Type a start and destina
 Everything here runs on free services. No API keys are needed.
 
 ## Files
-- public/index.html: the site (map, search, routing, toll ticket)
+- public/index.html: the page layout
+- public/app.js: the site logic (map, search, routing, route options, toll ticket)
 - public/tolls.js: TRB Class 1 toll matrices (effective 1 Feb 2026). Update this when rates change.
 - public/plazas.js: toll plaza coordinates used to detect entrance and exit
 - public/detect.js: reads the route and works out which expressways and plazas it uses

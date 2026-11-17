@@ -23,16 +23,29 @@ function nearestPlaza(key,pt){
   for(const [name,c] of Object.entries(PLAZAS[key])){ const d=km(pt,c); if(d<bd){bd=d;best=name;} }
   return best;
 }
+const SKY_SPLIT=14.556; // Buendia: Skyway south of here is priced with SLEX, north is Skyway Stage 3
 function detectLegs(route){
   const runs=[];
+  const add=(key,first,last,dist,sky)=>{
+    const prev=runs[runs.length-1];
+    if(prev && prev.key===key && km(prev.end,first)<6){ prev.end=last; prev.dist+=dist; prev.sky=prev.sky||sky; }
+    else runs.push({key,start:first,end:last,dist,sky});
+  };
   for(const leg of route.legs) for(const st of leg.steps){
-    const c=st.geometry.coordinates; if(!c.length) continue;
-    const first=[c[0][1],c[0][0]], last=[c[c.length-1][1],c[c.length-1][0]];
+    const c=st.geometry.coordinates.map(p=>[p[1],p[0]]); if(!c.length) continue;
+    if(/skyway/i.test(st.name||"")){
+      // walk the line and cut it wherever it crosses Buendia
+      let seg=[c[0]];
+      const flush=()=>{ if(seg.length<2) return; let dist=0; for(let i=1;i<seg.length;i++) dist+=km(seg[i-1],seg[i])*1000;
+        add(seg[0][0]+seg[seg.length-1][0] > 2*SKY_SPLIT ? "SKY3":"SLEX",seg[0],seg[seg.length-1],dist,true); };
+      for(let i=1;i<c.length;i++){
+        if((c[i-1][0]>SKY_SPLIT)!==(c[i][0]>SKY_SPLIT)){ seg.push(c[i]); flush(); seg=[c[i]]; } else seg.push(c[i]);
+      }
+      flush(); continue;
+    }
+    const first=c[0], last=c[c.length-1];
     const key=classifyRoad(st.name,(first[0]+last[0])/2);
-    if(!key) continue;
-    const sky=/skyway/i.test(st.name), prev=runs[runs.length-1];
-    if(prev && prev.key===key && km(prev.end,first)<6){ prev.end=last; prev.dist+=st.distance; prev.sky=prev.sky||sky; }
-    else runs.push({key,start:first,end:last,dist:st.distance,sky});
+    if(key) add(key,first,last,st.distance,false);
   }
   const legs=[];
   for(const r of runs){
