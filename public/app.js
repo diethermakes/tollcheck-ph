@@ -106,6 +106,13 @@ function pick(i){
   else if(which==="to" && !PT.from) $("from").focus();
   else { $(which).blur(); typing(false); if(PT.from&&PT.to) run(); }
 }
+function renderLocRow(which){
+  const box=$("sugg"); box.replaceChildren(); box.hidden=false; RESULTS=[]; HI=-1;
+  const b=el("button","loc"); b.type="button";
+  const t=el("span"); t.appendChild(el("b",null,"My location")); t.appendChild(el("small",null,which==="from"?"Start from where you are now":"Go to where you are now")); b.appendChild(t);
+  b.addEventListener("pointerdown",ev=>{ev.preventDefault(); useMyLocation(which);});
+  box.appendChild(b);
+}
 function renderSugg(state){
   const box=$("sugg"); box.replaceChildren(); box.hidden=false;
   if(state) return box.appendChild(el("div","note",state));
@@ -119,11 +126,12 @@ function renderSugg(state){
 }
 function wire(which){
   const inp=$(which);
-  inp.addEventListener("focus",()=>{ ACTIVE=which; typing(true); setTimeout(()=>inp.select(),0); });
+  inp.addEventListener("focus",()=>{ ACTIVE=which; typing(true); setTimeout(()=>inp.select(),0);
+    if(inp.value.trim().length<3||PT[which]) renderLocRow(which); });
   inp.addEventListener("input",()=>{
     ACTIVE=which; PT[which]=null; $(which+"Row").classList.remove("set"); $(which+"X").hidden=!inp.value;
     clearTimeout(timer); const q=inp.value.trim();
-    if(q.length<3) return closeSugg();
+    if(q.length<3) return renderLocRow(which);
     renderSugg("Searching");
     timer=setTimeout(async()=>{
       const id=++reqId;
@@ -156,14 +164,21 @@ $("swap").onclick=()=>{
   if(!b){ $("from").value=bv; $("fromX").hidden=!bv; } if(!a){ $("to").value=av; $("toX").hidden=!av; }
   if(PT.from&&PT.to&&!$("panel").classList.contains("typing")) run();
 };
-$("me").onclick=()=>{
-  if(!navigator.geolocation) return note("This browser can't share your location. Type your starting point instead.","err");
-  note("Getting your location","busy");
+// "My location" for either field: from the button next to Check toll, or the first row of suggestions
+function useMyLocation(which){
+  which=which||"from";
+  const other=which==="from"?"to":"from";
+  if(!navigator.geolocation){ note("This browser can't share your location. Type the place instead.","err"); return; }
+  const box=$("sugg"); if(!box.hidden){ box.replaceChildren(el("div","note","Getting your location")); }
+  else note("Getting your location","busy");
   navigator.geolocation.getCurrentPosition(p=>{
-    setPlace("from",{lat:p.coords.latitude,lng:p.coords.longitude,label:"My location",sub:""}); note("");
-    if(PT.to) run(); else $("to").focus();
-  },()=>note("Location is turned off for this site. Type your starting point instead.","err"),{enableHighAccuracy:true,timeout:10000});
-};
+    setPlace(which,{lat:p.coords.latitude,lng:p.coords.longitude,label:"My location",sub:""}); note(""); closeSugg();
+    if(PT[other]){ document.activeElement&&document.activeElement.blur(); typing(false); run(); }
+    else $(other).focus();
+  },()=>{ closeSugg(); typing(false); note("Location is turned off for this site. Allow it in your browser settings, or type the place instead.","err"); },
+  {enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+}
+$("me").onclick=()=>useMyLocation("from");
 
 // ---- routing ----
 async function resolvePoint(which){
@@ -273,12 +288,12 @@ function candidates(a,b,baseLegs){
   for(const k of Object.keys(PLAZAS)){
     const names=Object.keys(PLAZAS[k]), pairs=[];
     for(const e of names){
-      const de=km(A,PLAZAS[k][e]); if(de>direct*0.6+3) continue;
+      const de=km(A,PLAZAS[k][e]); if(de>direct+3) continue;   // far entrances are fine if the whole detour is short (est check below)
       for(const x of names){
         if(e===x||fare(k,e,x)===null||baseLegs.some(l=>l[0]===k&&l[1]===e&&l[2]===x)) continue;
         const north=PLAZAS[k][x][0]>PLAZAS[k][e][0];
         if(!rampOk(k,e,"enter",north)||!rampOk(k,x,"exit",north)) continue;   // one-way ramps
-        const dx=km(PLAZAS[k][x],B); if(dx>direct*0.6+3) continue;
+        const dx=km(PLAZAS[k][x],B); if(dx>direct+3) continue;
         const len=km(PLAZAS[k][e],PLAZAS[k][x]); if(len<2.5) continue;
         const est=de+len*0.55+dx;
         if(est<=direct*1.45+3) pairs.push({k,e,x,est});
@@ -298,7 +313,7 @@ async function addExpresswayOptions(a,b){
   const quick=ROUTES.reduce((p,q)=>q.r.duration<p.r.duration?q:p), fastest=quick.r.duration;
   const shortest=Math.min(...ROUTES.map(x=>x.r.distance));
   // if the quickest route already uses a toll road, only add options that take about as long
-  const limit=quick.legs.length ? fastest*1.25+300 : fastest*2+600;
+  const limit=quick.legs.length ? fastest*1.6+300 : fastest*2+600;
   const kind=legs=>legs.map(l=>l.join("/")).join("+");
   const best={};
   for(const c of cands){

@@ -2,6 +2,7 @@
 // NLEX/SCTEX 20 Jan 2026 · Skyway-SLEX-MCX 1 Jul 2026 · STAR 1 Jul 2026 · CALAX 9 Aug 2026 · CAVITEX 9 May 2026
 // Skyway Stage 3, TPLEX, NAIAX, NLEX Connector, Harbor Link: latest TRB matrices (no change in 2026).
 // Checked 17 Nov 2026 against TRB publications and tollcalculator.ph.
+// Magallanes to C-5 on the at-grade SLEX is 0: the TRB matrix treats them as one tolling point (identical columns).
 const EXP = {
  NLEX:{name:"NLEX / SCTEX",rfid:"Easytrip",
   cols:["Balintawak","Mindanao Ave.","Karuhatan","Valenzuela","Meycauayan","Marilao","Ciudad de Victoria","Bocaue","Tambubong","Balagtas","Sta. Rita","Pulilan","San Simon","San Fernando","Mexico","Angeles","Dau","Tipo/Subic","Dinalupihan","Floridablanca","Porac","Clark South","Mabalacat (Mabiga)","Clark North","Dolores","Bamban/New Clark City","Concepcion","Hacienda Luisita","Tabang","Sta. Ines"],
@@ -50,7 +51,7 @@ Rosario/Baguio|311,281,253,232,212,147,95,76,41,21`},
  SLEX:{name:"SLEX / Skyway / MCX",rfid:"Autosweep",
   cols:["Magallanes","Buendia","C-5","Amorsolo","Bicutan","Magallanes (Skyway)","NAIAX","Sucat","Alabang","Filinvest","MCX","Susana Heights","San Pedro","Southwoods","Carmona","Mamplasan","Sta. Rosa","ABI/Greenfield","Cabuyao","Silangan","Calamba","Merville"],
   rows:`Buendia|-,-,-,-,72,-,0,118,164,-,-,-,-,-,-,-,-,-,-,-,-,-
-C-5|-,-,-,-,49,-,-,84,118,-,-,-,-,-,-,-,-,-,-,-,-,-
+C-5|0,-,-,-,49,-,-,84,118,-,-,-,-,-,-,-,-,-,-,-,-,-
 Amorsolo|-,-,-,-,72,-,0,118,164,-,-,-,-,-,-,-,-,-,-,-,-,-
 Bicutan|49,72,49,72,-,72,72,34,69,-,-,-,-,-,-,-,-,-,-,-,-,-
 Magallanes (Skyway)|-,-,-,-,72,-,0,118,164,-,-,-,-,-,-,-,-,-,-,-,-,-

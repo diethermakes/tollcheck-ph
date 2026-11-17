@@ -84,6 +84,13 @@ function detectLegs(route){
     if(i>0 && legs[i-1][0]==="SLEX" && legs[i][2]!=="Calamba") legs[i][1]="Calamba";
     if(i<legs.length-1 && legs[i+1][0]==="SLEX" && legs[i][1]!=="Calamba") legs[i][2]="Calamba";
   }
-  return legs.filter(l=>l[1]!==l[2]);
+  // two pieces of the same expressway in a row (a gap in the map data) are one trip and one toll
+  const out=[];
+  for(const l of legs.filter(l=>l[1]!==l[2])){
+    const p=out[out.length-1];
+    if(p&&p[0]===l[0]&&p[1]!==l[2]&&fare(l[0],p[1],l[2])!==null){ p[2]=l[2]; continue; }
+    out.push(l);
+  }
+  return out;
 }
 if(typeof module!=="undefined") module.exports={detectLegs,classifyRoad,nearestPlaza};
