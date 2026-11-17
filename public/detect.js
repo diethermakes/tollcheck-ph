@@ -5,7 +5,7 @@ function classifyRoad(name, lat){
   if(/service road|frontage/.test(n)) return null;                       // side roads beside an expressway are free
   if(/nlex connector|connector road/.test(n)) return "CONN";
   // Karuhatan to NLEX (Segment 9) and the Mindanao Avenue link (Segment 8) are priced in the NLEX table
-  if(/segment 9|segment 8|mindanao avenue link/.test(n)) return "NLEX";
+  if(/segment 9|segment 8|mindanao avenue link|tabang spur/.test(n)) return "NLEX";   // Tabang Spur Road leads to the Tabang (Guiguinto) exit
   if(/harbor link|segment 10/.test(n)) return "HARBOR";
   if(/skyway/.test(n)) return lat>14.556 ? "SKY3" : "SLEX";
   if(/north luzon expressway|nlex|subic.clark.tarlac|sctex/.test(n)) return "NLEX";

@@ -28,6 +28,7 @@ You can also paste a Google Maps share link instead of typing the trip.
 - **Entry and exit plaza** for each expressway, marked on the map
 - **Which RFID you need** for each expressway (Easytrip or Autosweep)
 - **Vehicle class** options: Class 1 (cars, SUVs, vans), Class 2 (buses, light trucks), Class 3 (large trucks)
+- **Round trip:** tap "Add the trip back" to see the toll for the return drive and the round-trip total
 - **Travel time and distance**
 - **Light and dark mode**
 - **Popular trips** to get started, and **recent trips** for quick reuse, which you can remove one by one or clear all at once

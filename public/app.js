@@ -45,6 +45,7 @@ function fit(bounds){
 // ---- state ----
 const PT={from:null,to:null};      // chosen places: {lat,lng,label,sub}
 let ROUTES=[], ENDS=null, LEGS=[], SEL=0, VCLASS=1, SEARCHING=false, TRIP=0;
+let BACK=null, BACK_ON=false;   // the trip back: {r,legs}
 
 // ---- theme ----
 $("themeBtn").onclick=()=>{
@@ -144,7 +145,7 @@ function wire(which){
 wire("from"); wire("to");
 // back to the start view (recent and popular trips) when a place is cleared
 function resetTrip(){
-  TRIP++; SEARCHING=false; ROUTES=[]; LEGS=[]; ENDS=null; layer.clearLayers();
+  TRIP++; SEARCHING=false; ROUTES=[]; LEGS=[]; ENDS=null; BACK=null; BACK_ON=false; layer.clearLayers();
   $("result").hidden=true; $("start").hidden=false; note(""); $("peekText").textContent="Plan a trip";
 }
 
@@ -197,7 +198,7 @@ async function run(){
     if(!routes) throw new Error("The route service is busy. Try again in a moment.");
     TRIP++; SEARCHING=false;
     ROUTES=routes.map(r=>({r,legs:detectLegs(r)}));
-    ENDS={a,b}; saveRecent(a,b);
+    ENDS={a,b}; BACK=null; BACK_ON=false; saveRecent(a,b);
     $("result").hidden=false; $("start").hidden=true; note("");
     showRoute(0);
     if(isPhone()) $("panel").classList.remove("peek");
@@ -253,6 +254,14 @@ function renderOptions(){
 // The free router has no traffic data, so it often skips expressways that are quicker in real life.
 // This tries likely entrance and exit pairs, plus the local hints in hints.js, and adds the ones that work.
 const near=(p,c,r)=>km(p,c)<=r;
+function toward(p,q,dkm){ // a point dkm from p toward q
+  const d=km(p,q); if(d<dkm*2) return p; const t=dkm/d; return [p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t];
+}
+function bearing(a,b){ // compass heading from a to b, in degrees
+  const d=Math.PI/180, y=Math.sin((b[1]-a[1])*d)*Math.cos(b[0]*d),
+        x=Math.cos(a[0]*d)*Math.sin(b[0]*d)-Math.sin(a[0]*d)*Math.cos(b[0]*d)*Math.cos((b[1]-a[1])*d);
+  return Math.round((Math.atan2(y,x)/d+360)%360);
+}
 function candidates(a,b,baseLegs){
   const A=[a.lat,a.lng], B=[b.lat,b.lng], direct=km(A,B), out=[];
   if(direct<4) return out;
@@ -294,11 +303,24 @@ async function addExpresswayOptions(a,b){
   const best={};
   for(const c of cands){
     try{
-      // route through the entrance and the exit plaza so the driver really uses them
-      const rs=await osrm([[a.lat,a.lng],PLAZAS[c.k][c.e],PLAZAS[c.k][c.x],[b.lat,b.lng]],"&continue_straight=true");
-      await wait(350); if(trip!==TRIP) return;
-      if(!rs) continue;
-      const r=rs[0], legs=detectLegs(r);
+      // route through the entrance and the exit plaza so the driver really uses them. The bearing makes the
+      // router snap to the carriageway going the right way; without it, a plaza on the opposite side forces a U-turn.
+      // Some plazas sit on the main road past the exit ramp, so if the first try misses the exit,
+      // try again with the points moved 600 m inside the stretch between entrance and exit.
+      const E=PLAZAS[c.k][c.e], X=PLAZAS[c.k][c.x], hd=bearing(E,X);
+      let r=null, legs=null, hit=false;
+      for(const [p,q] of [[E,X],[toward(E,X,0.6),toward(X,E,0.6)]]){
+        const rs=await osrm([[a.lat,a.lng],p,q,[b.lat,b.lng]],`&continue_straight=true&bearings=;${hd},80;${hd},80;`);
+        await wait(350); if(trip!==TRIP) return;
+        if(!rs) continue;
+        const l=detectLegs(rs[0]);
+        if(!r){ r=rs[0]; legs=l; }
+        if(l.some(x=>x[0]===c.k&&x[1]===c.e&&x[2]===c.x)){ r=rs[0]; legs=l; hit=true; break; }
+      }
+      if(!r) continue;
+      // if neither try hit the exit, keep the result only if it at least entered where intended;
+      // otherwise the router made a detour (left the expressway and rejoined), which nobody would drive
+      if(!hit&&!legs.some(x=>x[0]===c.k&&x[1]===c.e)) continue;
       if(!legs.some(l=>l[0]===c.k)) continue;
       if(legs.some(l=>fare(...l)===null)) continue;                    // can't price it, so don't offer it
       if(r.duration>limit||r.distance>shortest*1.7+4000) continue;   // a loop or a long detour
@@ -314,10 +336,9 @@ async function addExpresswayOptions(a,b){
 }
 
 // ---- toll receipt ----
-function calc(){
-  let sum=0,bad=0; const box=$("lines"); box.replaceChildren();
-  if(!LEGS.length) box.appendChild(el("p","empty","This route has no toll roads."));
-  LEGS.forEach(([k,a,b])=>{
+function legRows(box,legs){
+  let sum=0,bad=0;
+  legs.forEach(([k,a,b])=>{
     const f=fare(k,a,b), m=mult(k,VCLASS), row=el("div","leg"+(f===null?" bad":""));
     row.appendChild(el("b",null,EXP[k].name));
     row.appendChild(el("span","amt",f===null?"No rate":f===0?"Free":peso(f*m)));
@@ -326,13 +347,30 @@ function calc(){
     box.appendChild(row);
     if(f===null) bad++; else sum+=f*m;
   });
-  $("total").textContent=peso(sum);
-  $("tlabel").textContent=VCLASS===1?"Total toll":"Estimated total toll";
+  if(!legs.length) box.appendChild(el("p","empty","No toll roads this way."));
+  return {sum,bad};
+}
+function calc(){
+  const box=$("lines"); box.replaceChildren();
+  const back=BACK_ON&&BACK;
+  if(back) box.appendChild(el("p","leg-head",`Going to ${ENDS.b.label}`));
+  else if(!LEGS.length) { box.appendChild(el("p","empty","This route has no toll roads.")); }
+  const go=LEGS.length||back?legRows(box,LEGS):{sum:0,bad:0};
+  let ret={sum:0,bad:0};
+  const bl=$("backLines"); bl.replaceChildren(); bl.hidden=!back;
+  if(back){ bl.appendChild(el("p","leg-head",`Coming back to ${ENDS.a.label}`)); ret=legRows(bl,BACK.legs); }
+  const total=go.sum+ret.sum, bad=go.bad+ret.bad;
+  $("total").textContent=peso(total);
+  $("tlabel").textContent=(back?"Round trip toll":"Total toll")+(VCLASS===1?"":", estimated");
   const r=ROUTES[SEL];
-  $("tsub").textContent=(r?`${dur(r.r.duration)} without traffic, ${Math.round(r.r.distance/1000)} km`:"")+(bad?". Some parts could not be priced.":"");
-  const est=VCLASS>1&&LEGS.some(l=>!CLS_BY[l[0]]);
+  $("tsub").textContent=back
+    ? `Going ${peso(go.sum)}, coming back ${peso(ret.sum)}`+(bad?". Some parts could not be priced.":"")
+    : (r?`${dur(r.r.duration)} without traffic, ${Math.round(r.r.distance/1000)} km`:"")+(bad?". Some parts could not be priced.":"");
+  const est=VCLASS>1&&[...LEGS,...(back?BACK.legs:[])].some(l=>!CLS_BY[l[0]]);
   $("source").textContent="Latest TRB rates, checked 17 November 2026, VAT included."+(est?" Some bus and truck amounts are estimates.":"");
-  $("peekText").textContent=LEGS.length?`${peso(sum)} total toll`:(r?"No toll on this route":"Plan a trip");
+  const bb=$("backBtn"); bb.hidden=!ENDS; bb.setAttribute("aria-pressed",BACK_ON);
+  if(!bb.disabled) bb.textContent=BACK_ON?"Remove the trip back":"Add the trip back";
+  $("peekText").textContent=(LEGS.length||back)?`${peso(total)} ${back?"round trip":"total toll"}`:(r?"No toll on this route":"Plan a trip");
 }
 function renderLegs(){
   const box=$("legs"); box.replaceChildren();
@@ -360,6 +398,25 @@ $("legs").addEventListener("change",ev=>{
 });
 $("legs").addEventListener("click",ev=>{const d=ev.target.dataset.del; if(d!==undefined){LEGS.splice(+d,1);renderLegs();}});
 $("add").onclick=()=>{LEGS.push(["NLEX","Balintawak","Dau"]);$("result").hidden=false;renderLegs();};
+// ---- the trip back ----
+// Routed separately because one-way ramps and different roads can change the plazas and the toll.
+$("backBtn").onclick=async()=>{
+  if(BACK_ON){ BACK_ON=false; calc(); return; }
+  if(BACK){ BACK_ON=true; calc(); return; }
+  if(!ENDS) return;
+  const bb=$("backBtn"), trip=TRIP; bb.disabled=true; bb.textContent="Checking the way back";
+  try{
+    const rs=await osrm([[ENDS.b.lat,ENDS.b.lng],[ENDS.a.lat,ENDS.a.lng]],"&alternatives=3");
+    if(trip!==TRIP) return;
+    if(!rs) throw new Error("The route service is busy. Try again in a moment.");
+    // prefer a way back on the same expressways as the route picked for going
+    const want=[...new Set(LEGS.map(l=>l[0]))].sort().join("+");
+    const opts=rs.map(r=>({r,legs:detectLegs(r)}));
+    BACK=opts.find(o=>[...new Set(o.legs.map(l=>l[0]))].sort().join("+")===want)||opts[0];
+    BACK_ON=true; note("");
+  }catch(e){ note(e.message,"err"); }
+  bb.disabled=false; calc();
+};
 $("cls").addEventListener("click",ev=>{
   const b=ev.target.closest("button"); if(!b) return;
   VCLASS=+b.dataset.cls; [...$("cls").children].forEach(x=>x.classList.toggle("on",x===b));

@@ -113,7 +113,7 @@ NAIA Terminal 2|45,45,45,-,-,35,35,35
 Entertainment City|45,45,45,35,35,-,-,-
 Macapagal Blvd.|45,45,45,35,35,-,-,-
 CAVITEX|45,45,45,35,35,-,-,-
-NAIA Terminal 3|-,-,-,45,45,45,45,45`},
+NAIA Terminal 3|35,-,-,45,45,45,45,45`},
  CONN:{name:"NLEX Connector",rfid:"Easytrip",
   cols:["España","Magsaysay"],
   rows:`Magsaysay|119,-
